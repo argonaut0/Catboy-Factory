@@ -3,9 +3,19 @@
 
 #define LEFT_PIN 9
 #define RIGHT_PIN 10
+#define BAUDRATE 9600
 
+
+/*
+  Globals
+*/
 Servo leftS;
 Servo rightS;
+
+
+/*
+  Helpers
+*/
 
 int rangle(int a) {
   return 180 - a;
@@ -18,7 +28,7 @@ void writeSame(int a) {
 
 void resetServos() {
   writeSame(90);
-  delay(30);
+  delay(200);
 }
 
 // Flattens ears, waits for t milliseconds, then vibrates them up. 
@@ -52,15 +62,51 @@ void vibrate() {
   wiggle(20, 20, 40);
 }
 
+
+/*
+  Main
+*/
+
 void setup() {
+  Serial.begin(BAUDRATE);
   leftS.attach(LEFT_PIN);
   rightS.attach(RIGHT_PIN);
-  // Your code here:
   resetServos();
-  flatten();
-  wiggle();
-  vibrate();
+  // Your code here:
 }
 
 void loop() {
+  
+  if (Serial.available()) {
+    char cmd = Serial.read();
+    switch (cmd) {
+      case 'w':
+        wiggle();
+        break;
+      case 'v':
+        vibrate();
+        break;
+      case 'f':
+        flatten();
+      case 'r':
+      default:
+        resetServos();
+        break;
+    }
+  }
 }
+
+/*
+  Serial Protocol:
+  ---------------------
+  Need to encode:
+  - 181 degrees * 2 ears
+  - 8 ish animations
+  - 256 intensities * 3 colors * 18
+  1 byte leftS
+  1 byte rightS
+  1 byte other
+  3 bytes * 18 LEDs
+
+
+*/
