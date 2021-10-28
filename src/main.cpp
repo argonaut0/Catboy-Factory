@@ -3,11 +3,12 @@
 
 #define LEFT_PIN 9
 #define RIGHT_PIN 10
+#define LED_PIN 11
 #define BAUDRATE 9600
 #define BUTTON1 4
 #define BUTTON2 5
 #define BUTTON3 6
-#define BUTTONLED 3
+
 
 
 /*
@@ -16,6 +17,7 @@
 Servo leftS;
 Servo rightS;
 
+bool lighton = 0;
 
 /*
   Helpers
@@ -76,6 +78,15 @@ void vibrate() {
   }
 }
 
+void lights() {
+  if (lighton) {
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+  lighton = !lighton;
+}
+
 
 /*
   Main
@@ -85,6 +96,7 @@ void setup() {
   Serial.begin(BAUDRATE);
   leftS.attach(LEFT_PIN);
   rightS.attach(RIGHT_PIN);
+  pinMode(LED_PIN, OUTPUT);
   pinMode(BUTTON1, INPUT);
   digitalWrite(BUTTON1, HIGH);
   pinMode(BUTTON2, INPUT);
@@ -117,6 +129,8 @@ void loop() {
         break;
       case 'f':
         flatten();
+      case 'l':
+        lights();
       case 'r':
       default:
         resetServos();
