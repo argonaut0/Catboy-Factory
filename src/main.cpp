@@ -4,6 +4,10 @@
 #define LEFT_PIN 9
 #define RIGHT_PIN 10
 #define BAUDRATE 9600
+#define BUTTON1 4
+#define BUTTON2 5
+#define BUTTON3 6
+#define BUTTONLED 3
 
 
 /*
@@ -81,12 +85,20 @@ void setup() {
   Serial.begin(BAUDRATE);
   leftS.attach(LEFT_PIN);
   rightS.attach(RIGHT_PIN);
+  pinMode(BUTTON1, INPUT);
+  digitalWrite(BUTTON1, HIGH);
+  pinMode(BUTTON2, INPUT);
+  digitalWrite(BUTTON2, HIGH);
+  pinMode(BUTTON3, INPUT);
+  digitalWrite(BUTTON3, HIGH);
+  /*
   char cmd = ' ';
   while (cmd != 'i') {
     if (Serial.available()) {
       cmd = Serial.read();
     }
   }
+  */
   Serial.println("Initialized");
   resetServos();
   // Your code here:
@@ -110,6 +122,16 @@ void loop() {
         resetServos();
         break;
     }
+  }
+
+  if (digitalRead(BUTTON1) == LOW) {
+    flatten();
+  }
+  if (digitalRead(BUTTON2) == LOW) {
+    wiggle();
+  }
+  if (digitalRead(BUTTON3) == LOW) {
+    vibrate();
   }
 }
 
