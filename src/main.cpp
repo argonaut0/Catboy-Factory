@@ -5,16 +5,19 @@ FASTLED_USING_NAMESPACE
 
 #define DATA_PIN            8
 #define NUM_LEDS            18
-#define MAX_POWER_MILLIAMPS 500
+#define MAX_POWER_MILLIAMPS 300
 #define LED_TYPE            WS2812B
 #define COLOR_ORDER         GRB
+
+#define BRIGHTNESS  200
+#define FRAMES_PER_SECOND 60
 
 
 #define LEFT_PIN 9
 #define RIGHT_PIN 10
 #define BAUDRATE 9600
 #define BUTTON1 4
-#define BUTTON2 5
+#define BUTTON2 2
 #define BUTTON3 6
 #define BUTTONLED 3
 
@@ -26,6 +29,7 @@ Servo leftS;
 Servo rightS;
 
 CRGB leds[NUM_LEDS];
+bool gReverseDirection = false;
 
 /*
   Helpers
@@ -185,6 +189,48 @@ void pacifica_loop()
   pacifica_deepen_colors();
 }
 
+#define COOLING  60
+
+// SPARKING: What chance (out of 255) is there that a new spark will be lit?
+// Higher chance = more roaring fire.  Lower chance = more flickery fire.
+// Default 120, suggested range 50-200.
+#define SPARKING 120
+
+
+void Fire2012()
+{
+// Array of temperature readings at each simulation cell
+  static uint8_t heat[NUM_LEDS];
+
+  // Step 1.  Cool down every cell a little
+    for( int i = 0; i < NUM_LEDS; i++) {
+      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / NUM_LEDS) + 2));
+    }
+  
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for( int k= NUM_LEDS - 1; k >= 2; k--) {
+      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+    }
+    
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if( random8() < SPARKING ) {
+      int y = random8(7);
+      heat[y] = qadd8( heat[y], random8(160,200) );
+    }
+
+    // Step 4.  Map from heat cells to LED colors
+    for( int j = 0; j < NUM_LEDS; j++) {
+      CRGB color = HeatColor( heat[j]);
+      int pixelnumber;
+      if( gReverseDirection ) {
+        pixelnumber = (NUM_LEDS-1) - j;
+      } else {
+        pixelnumber = j;
+      }
+      leds[pixelnumber] = color;
+    }
+}
+
 
 /*
   Main
@@ -246,8 +292,9 @@ void loop() {
     vibrate();
   }
 
-  EVERY_N_MILLISECONDS(100) {
-    pacifica_loop();
+  EVERY_N_MILLISECONDS(70) {
+    //pacifica_loop();
+    Fire2012();
     leftS.detach();
     rightS.detach();
     FastLED.show();
